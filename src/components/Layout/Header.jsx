@@ -1,4 +1,4 @@
-import { FaSignOutAlt, FaBoxes, FaSyncAlt } from 'react-icons/fa';
+import { FaSignOutAlt, FaBoxes, FaSyncAlt, FaArrowLeft } from 'react-icons/fa';
 import { useAuth } from '../../context/AuthContext';
 
 const Header = () => {
@@ -23,6 +23,14 @@ const Header = () => {
 
             {/* Right: Actions */}
             <div className="flex items-center gap-3">
+                <a
+                    href="http://13.140.173.35/portal"
+                    className="flex items-center gap-2 px-4 py-2 text-sm font-semibold text-slate-700 bg-slate-50 border border-slate-200 rounded-lg hover:bg-slate-100 hover:text-slate-800 transition-colors"
+                    title="Voltar ao Portal"
+                >
+                    <FaArrowLeft className="text-xs" />
+                    <span>Voltar ao Portal</span>
+                </a>
                 <button
                     onClick={() => window.location.reload()}
                     className="flex items-center gap-2 px-4 py-2 text-sm font-semibold text-indigo-600 bg-indigo-50 border border-indigo-200 rounded-lg hover:bg-indigo-100 hover:text-indigo-700 transition-colors"
