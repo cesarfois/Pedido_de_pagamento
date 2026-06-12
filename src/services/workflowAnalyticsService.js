@@ -160,8 +160,28 @@ export const workflowAnalyticsService = {
     persistHistoryCache: (docId, instances) => {
         try {
             memoryCache.set(docId, instances);
-            localStorage.setItem(`dw_history_cache_${docId}`, JSON.stringify(instances));
-            console.log(`[WorkflowAnalytics] Persisted history cache for DocID: ${docId}`);
+            const key = `dw_history_cache_${docId}`;
+            const payload = JSON.stringify(instances);
+            try {
+                localStorage.setItem(key, payload);
+                console.log(`[WorkflowAnalytics] Persisted history cache for DocID: ${docId}`);
+            } catch (err) {
+                if (err.name === 'QuotaExceededError' || err.code === 22) {
+                    console.warn('[WorkflowAnalytics] LocalStorage full. Evicting old items...');
+                    const keys = [];
+                    for (let i = 0; i < localStorage.length; i++) {
+                        const k = localStorage.key(i);
+                        if (k && k.startsWith('dw_history_cache_')) {
+                            keys.push(k);
+                        }
+                    }
+                    keys.forEach(k => localStorage.removeItem(k));
+                    localStorage.setItem(key, payload);
+                    console.log(`[WorkflowAnalytics] Persisted history cache for DocID: ${docId} after eviction.`);
+                } else {
+                    throw err;
+                }
+            }
         } catch (err) {
             console.warn(`[WorkflowAnalytics] Failed to persist history cache for ${docId}:`, err);
         }

@@ -1000,11 +1000,29 @@ const WorkflowHistoryPage = () => {
                             if (instances) {
                                 try {
                                     const expiresAt = isFinished ? null : Date.now() + 5 * 60 * 1000;
-                                    sessionStorage.setItem(cacheKey, JSON.stringify({
+                                    const payload = JSON.stringify({
                                         instances,
                                         expiresAt,
                                         isFinished
-                                    }));
+                                    });
+                                    try {
+                                        sessionStorage.setItem(cacheKey, payload);
+                                    } catch (err) {
+                                        if (err.name === 'QuotaExceededError' || err.code === 22) {
+                                            console.warn('[Cache] SessionStorage full. Evicting old workflow history items...');
+                                            const keys = [];
+                                            for (let idx = 0; idx < sessionStorage.length; idx++) {
+                                                const k = sessionStorage.key(idx);
+                                                if (k && k.startsWith('wf_history_')) {
+                                                    keys.push(k);
+                                                }
+                                            }
+                                            keys.forEach(k => sessionStorage.removeItem(k));
+                                            sessionStorage.setItem(cacheKey, payload);
+                                        } else {
+                                            throw err;
+                                        }
+                                    }
                                 } catch (e) {
                                     console.warn('Failed to write to sessionStorage', e);
                                 }
