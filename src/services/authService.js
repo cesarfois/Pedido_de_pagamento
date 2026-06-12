@@ -266,6 +266,16 @@ export const authService = {
                         originalRequest.headers['Authorization'] = `Bearer ${newToken}`;
                         return api(originalRequest);
                     } catch (refreshError) {
+                        if (window.location.pathname.startsWith('/workflow-diagram')) {
+                            try {
+                                const saAuth = await authService.loginWithServiceAccount();
+                                originalRequest.headers['Authorization'] = `Bearer ${saAuth.token}`;
+                                originalRequest.headers['x-target-url'] = saAuth.url;
+                                return api(originalRequest);
+                            } catch (saErr) {
+                                return Promise.reject(saErr);
+                            }
+                        }
                         // Refresh failed, redirect to login
                         window.location.href = '/login';
                         return Promise.reject(refreshError);

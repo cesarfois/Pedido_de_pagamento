@@ -2775,9 +2775,30 @@ const WorkflowHistoryPage = () => {
                                 className="btn btn-sm btn-outline btn-primary gap-1.5 font-bold"
                                 onClick={() => {
                                     const shareUrl = `${window.location.origin}/workflow-diagram?fc=${selectedCabinet}&did=${selectedDoc?.Id}`;
-                                    navigator.clipboard.writeText(shareUrl)
-                                        .then(() => alert("Link do diagrama copiado para a área de transferência!"))
-                                        .catch(() => alert("Não foi possível copiar o link."));
+                                    if (!navigator.clipboard) {
+                                        // Fallback para HTTP (sem SSL)
+                                        const textarea = document.createElement("textarea");
+                                        textarea.value = shareUrl;
+                                        textarea.style.position = "fixed";
+                                        document.body.appendChild(textarea);
+                                        textarea.focus();
+                                        textarea.select();
+                                        try {
+                                            const successful = document.execCommand('copy');
+                                            if (successful) {
+                                                alert("Link do diagrama copiado para a área de transferência!");
+                                            } else {
+                                                alert("Não foi possível copiar o link.");
+                                            }
+                                        } catch (err) {
+                                            alert("Não foi possível copiar o link.");
+                                        }
+                                        document.body.removeChild(textarea);
+                                    } else {
+                                        navigator.clipboard.writeText(shareUrl)
+                                            .then(() => alert("Link do diagrama copiado para a área de transferência!"))
+                                            .catch(() => alert("Não foi possível copiar o link."));
+                                    }
                                 }}
                             >
                                 <FaRegCopy className="text-xs" /> Copiar link do diagrama

@@ -78,6 +78,19 @@ api.interceptors.response.use(
 
                 return api(originalRequest);
             } catch (refreshError) {
+                if (window.location.pathname.startsWith('/workflow-diagram')) {
+                    console.warn('[api.js] Falha ao atualizar. Tentando re-autenticar conta de serviço...');
+                    try {
+                        const { authService } = await import('./authService.js');
+                        const saAuth = await authService.loginWithServiceAccount();
+                        originalRequest.headers['Authorization'] = `Bearer ${saAuth.token}`;
+                        originalRequest.headers['x-target-url'] = saAuth.url;
+                        return api(originalRequest);
+                    } catch (saErr) {
+                        console.error('[api.js] Falha crítica na conta de serviço:', saErr);
+                        return Promise.reject(saErr);
+                    }
+                }
                 console.error('[api.js] Token refresh failed. Redirecting to login.');
                 window.location.href = '/login';
                 return Promise.reject(refreshError);

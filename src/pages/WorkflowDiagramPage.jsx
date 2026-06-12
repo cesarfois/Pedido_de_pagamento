@@ -80,6 +80,14 @@ const WorkflowDiagramPage = () => {
             setLoading(true);
             setError(null);
             try {
+                // Garantir autenticação transparente usando a conta de serviço caso não haja sessão ativa
+                const authData = sessionStorage.getItem('docuware_auth');
+                if (!authData) {
+                    console.log('[WorkflowDiagramPage] Sem sessão ativa. Autenticando com Conta de Serviço...');
+                    const { authService } = await import('../services/authService');
+                    await authService.loginWithServiceAccount();
+                }
+
                 const result = await workflowAnalyticsService.getHistoryByDocId(documentId, cabinetId);
                 if (!cancelled) {
                     if (!result || result.length === 0) {

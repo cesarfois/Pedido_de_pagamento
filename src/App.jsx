@@ -55,11 +55,7 @@ function App() {
             {/* Standalone diagram view – no sidebar/layout, only the diagram */}
             <Route
               path="/workflow-diagram"
-              element={
-                <ProtectedRoute>
-                  <WorkflowDiagramPage />
-                </ProtectedRoute>
-              }
+              element={<WorkflowDiagramPage />}
             />
             <Route path="/" element={<Navigate to="/pedido-de-pagamento" />} />
             <Route path="*" element={<Navigate to="/pedido-de-pagamento" replace />} />
