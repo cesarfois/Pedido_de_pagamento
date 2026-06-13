@@ -372,6 +372,54 @@ const ResultsTable = ({ results, totalDocs, cabinetId, renderCustomColumn, initi
         return '-';
     };
 
+    const shouldShowFilter = (col) => {
+        const nameLower = col.name.toLowerCase();
+        const labelLower = col.label.toLowerCase();
+
+        // Check standard names
+        if (nameLower === 'id' || nameLower === 'filesize' || nameLower === 'createdat' || nameLower === 'lastmodified') {
+            return false;
+        }
+
+        // Check date or number keywords
+        if (nameLower.includes('date') || labelLower.includes('date') || nameLower.includes('data') || labelLower.includes('data')) {
+            return false;
+        }
+        if (nameLower.includes('valor') || labelLower.includes('valor') || nameLower.includes('amount') || labelLower.includes('amount') || nameLower.includes('number') || labelLower.includes('number') || nameLower.includes('número') || labelLower.includes('número') || nameLower.includes('no.') || labelLower.includes('no.')) {
+            return false;
+        }
+
+        // Check values from results
+        if (results && results.length > 0) {
+            const sampleValues = [];
+            for (let i = 0; i < results.length && sampleValues.length < 10; i++) {
+                const val = getFieldValue(results[i], col);
+                if (val !== '-' && val !== '' && val !== null && val !== undefined) {
+                    sampleValues.push(val);
+                }
+            }
+
+            if (sampleValues.length > 0) {
+                // If all sampled values are numbers, do not show filter
+                const allNumbers = sampleValues.every(v => {
+                    const num = Number(v);
+                    return !isNaN(num) || (typeof v === 'string' && /^\d+(\.\d+)?$/.test(v));
+                });
+                if (allNumbers) return false;
+
+                // If all sampled values are dates, do not show filter
+                const allDates = sampleValues.every(v => {
+                    if (typeof v === 'string' && v.length < 6) return false;
+                    const d = new Date(v);
+                    return !isNaN(d.getTime()) && (v.includes('-') || v.includes('/') || v.includes(':'));
+                });
+                if (allDates) return false;
+            }
+        }
+
+        return true;
+    };
+
     const getStatusColor = (doc) => {
         if (!statusConfig) return null;
 
@@ -642,7 +690,7 @@ const ResultsTable = ({ results, totalDocs, cabinetId, renderCustomColumn, initi
                                                     </span>
                                                 )}
                                             </span>
-                                            {getCustomStatusValue && (
+                                            {getCustomStatusValue && shouldShowFilter({name: 'customStatus'}) && (
                                                 <ColumnFilter
                                                     column={{ name: 'customStatus', label: 'Status' }}
                                                     uniqueValues={getUniqueValues({ name: 'customStatus' })}
@@ -683,14 +731,16 @@ const ResultsTable = ({ results, totalDocs, cabinetId, renderCustomColumn, initi
                                                         </span>
                                                     )}
                                                 </span>
-                                                <ColumnFilter
-                                                    column={col}
-                                                    uniqueValues={uniqueValues}
-                                                    selectedValues={selectedValues}
-                                                    onToggleValue={toggleFilterValue}
-                                                    onSelectAll={selectAllValues}
-                                                    onClear={clearColumnFilter}
-                                                />
+                                                {shouldShowFilter(col) && (
+                                                    <ColumnFilter
+                                                        column={col}
+                                                        uniqueValues={uniqueValues}
+                                                        selectedValues={selectedValues}
+                                                        onToggleValue={toggleFilterValue}
+                                                        onSelectAll={selectAllValues}
+                                                        onClear={clearColumnFilter}
+                                                    />
+                                                )}
                                             </div>
                                         </th>
                                     );
