@@ -372,7 +372,9 @@ const WorkflowHistoryPage = () => {
         const values = new Set();
         documents.forEach(doc => {
             let val = '';
-            if (columnName === 'requerente') {
+            if (columnName === 'docNum') {
+                val = getDocumentNumber(doc) || 'Sem Nº';
+            } else if (columnName === 'requerente') {
                 val = getDocFieldValue(doc, 'REQUERENTE');
             } else if (columnName === 'activeTaskName') {
                 val = documentProgress[doc.Id]?.activeTaskName;
@@ -674,7 +676,9 @@ const WorkflowHistoryPage = () => {
             for (const [colName, selectedValues] of Object.entries(columnFilters)) {
                 if (selectedValues && selectedValues.length > 0) {
                     let val = '';
-                    if (colName === 'requerente') {
+                    if (colName === 'docNum') {
+                        val = getDocumentNumber(doc) || 'Sem Nº';
+                    } else if (colName === 'requerente') {
                         val = getDocFieldValue(doc, 'REQUERENTE');
                     } else if (colName === 'activeTaskName') {
                         val = prog.activeTaskName;
@@ -1988,9 +1992,20 @@ const WorkflowHistoryPage = () => {
                                     <table className="table table-compact w-full border-collapse">
                                         <thead>
                                             <tr className="bg-slate-50 border-b border-slate-200 text-slate-500 text-[10px] uppercase tracking-wider font-semibold">
-                                                <th className="py-3 px-2 text-left cursor-pointer hover:bg-slate-100 select-none transition-colors" onClick={() => handleSort('docNum')}>
-                                                    Documento {sortField === 'docNum' ? (sortDirection === 'asc' ? '↑' : '↓') : '↕'}
-                                                </th>
+                                                <th className="py-3 px-2 text-left select-none transition-colors">
+                                                     <div className="flex items-center gap-1 justify-between">
+                                                         <span className="cursor-pointer hover:text-indigo-600 flex-grow" onClick={() => handleSort('docNum')}>
+                                                             Documento {sortField === 'docNum' ? (sortDirection === 'asc' ? '↑' : '↓') : '↕'}
+                                                         </span>
+                                                         <ColumnFilter
+                                                             column={{ name: 'docNum', label: 'Documento' }}
+                                                             uniqueValues={getUniqueColumnValues('docNum')}
+                                                             selectedValues={columnFilters['docNum'] || []}
+                                                             onToggleValue={toggleFilterValue}
+                                                             onClear={clearColumnFilter}
+                                                         />
+                                                     </div>
+                                                 </th>
                                                 <th className="py-3 px-2 text-left cursor-pointer hover:bg-slate-100 select-none transition-colors" onClick={() => handleSort('entryDate')}>
                                                     Início {sortField === 'entryDate' ? (sortDirection === 'asc' ? '↑' : '↓') : '↕'}
                                                 </th>
@@ -2070,10 +2085,7 @@ const WorkflowHistoryPage = () => {
                                                          />
                                                      </div>
                                                  </th>
-                                                 <th className="py-3 px-2 text-left cursor-pointer hover:bg-slate-100 select-none transition-colors" onClick={() => handleSort('valor')}>
-                                                     Valor {sortField === 'valor' ? (sortDirection === 'asc' ? '↑' : '↓') : '↕'}
-                                                 </th>
-                                                <th className="py-3 px-2 text-left">
+                                                                                                 <th className="py-3 px-2 text-left">
                                                     Comentários
                                                 </th>
                                                 <th className="py-3 px-1 text-center w-[38px]" title="Histórico">
@@ -2213,17 +2225,7 @@ const WorkflowHistoryPage = () => {
                                                             )}
                                                         </td>
 
-                                                        {/* Valor */}
-                                                        <td className="py-3 px-2">
-                                                            {isProgLoading ? (
-                                                                <span className="inline-block w-16 h-3 bg-slate-100 animate-pulse rounded"></span>
-                                                            ) : (
-                                                                <div className="text-slate-600 text-xs font-semibold truncate max-w-[80px]" title={getDocFieldValue(doc, 'CHAMP_10') || '-'}>
-                                                                    {getDocFieldValue(doc, 'CHAMP_10') || '-'}
-                                                                </div>
-                                                            )}
-                                                        </td>
-
+                                                        
                                                         {/* Comments */}
                                                         <td className="py-3 px-2">
                                                             {isProgLoading ? (
